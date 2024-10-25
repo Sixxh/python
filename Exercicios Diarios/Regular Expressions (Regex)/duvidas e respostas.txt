@@ -1,0 +1,194 @@
+Certainly! Here's a quick example using re.search() to locate a pattern within a string:
+
+import re
+
+# Example string
+text = "My email is example@example.com. Contact me anytime."
+
+# Pattern to search for an email address
+pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
+
+# Using re.search to find the first match of the pattern in the text
+match = re.search(pattern, text)
+
+if match:
+    print("Found a match:", match.group())
+else:
+    print("No match found.")
+
+Explanation
+
+    re.search(pattern, text) scans through the text for the first occurrence of the pattern and returns a match object if found.
+    match.group() returns the matched string.
+
+In this case, if an email is found in text, it will print the first email address found.
+
+----------------------------------------------------------
+
+Let's break down the parts of this regular expression pattern:
+
+python
+
+pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
+
+Explanation of Each Part
+
+    r'...':
+        The r before the string denotes a raw string in Python. It tells Python not to interpret backslashes (\) as escape characters. For example, \n would normally be interpreted as a newline, but in a raw string r'\n', it's treated literally as \n.
+
+    \b:
+        \b is a word boundary anchor. It asserts that the position in the text is at the beginning or end of a word. So \b helps ensure that we match a whole word and not just a part of it.
+        Here, the pattern uses \b at the start and end to make sure we're matching a whole email address, not just a portion of text that might look like one.
+
+    [A-Za-z0-9._%+-]:
+        The square brackets [] define a character class, allowing any of the characters inside to match.
+        Inside:
+            A-Z matches any uppercase letter.
+            a-z matches any lowercase letter.
+            0-9 matches any digit.
+            ._%+- matches the period (.), underscore (_), percent sign (%), plus (+), and hyphen (-) symbols, which are all allowed in email usernames.
+
+    +:
+        + is a quantifier. It matches one or more of the preceding element.
+        Here, [A-Za-z0-9._%+-]+ means "one or more of any of the allowed characters for an email username."
+
+Putting it together, the [A-Za-z0-9._%+-]+ part matches the email username before the @ symbol.
+
+    @:
+        This is the literal @ symbol in the pattern. It separates the username from the domain in an email address.
+
+    [A-Za-z0-9.-]+:
+        Similar to the character class for the username, this one matches the domain name.
+        The + at the end means we want one or more of these characters.
+
+    \.:
+        The backslash \ is used to escape the period . since . in regex means "any character." We use \. to match a literal period, as found in domain names (e.g., .com, .org).
+
+    [A-Z|a-z]{2,7}:
+        This is a character class with a quantifier {2,7}, specifying that we want between 2 and 7 characters for the domain suffix (e.g., com, org, net).
+        [A-Z|a-z] matches any uppercase or lowercase letter, and {2,7} ensures there are at least 2 letters and at most 7.
+
+Full Pattern Summary
+
+    \b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b matches an email address format, enforcing boundaries so only whole email addresses are matched. It allows alphanumeric characters and certain special characters for the username, @ symbol, a domain, and a top-level domain of 2-7 alphabetic characters.
+
+-----------------------------------------------------------
+For your requirements, let's adjust the pattern so it strictly ensures only one @ symbol, followed by a domain like .com or .net.
+
+Here's a regular expression that enforces these conditions:
+
+python
+
+pattern = r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.(com|net|org|edu|gov)$'
+
+Explanation of Additional Parts
+
+    ^ and $:
+        ^ asserts the start of the string, and $ asserts the end of the string.
+        Together, they ensure that the entire string matches the pattern, which guarantees that there's only one @ symbol.
+
+    (com|net|org|edu|gov):
+        The parentheses () create a group and the | symbol is used as an OR operator.
+        (com|net|org|edu|gov) matches any one of these top-level domains.
+
+Full Pattern Explanation
+
+So ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.(com|net|org|edu|gov)$ will:
+
+    Match email addresses with exactly one @.
+    Ensure that the domain name ends with .com, .net, .org, .edu, or .gov.
+
+Example Usage
+
+python
+
+import re
+
+email = "example@test.com"
+pattern = r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.(com|net|org|edu|gov)$'
+
+if re.match(pattern, email):
+    print("Valid email address.")
+else:
+    print("Invalid email address.")
+
+This will print Valid email address. if the email format is correct.
+
+-----------------------------------------------------------
+
+Using ^ and $ ensures that the entire string must match the pattern from start to end, rather than just matching a substring within the string. Here’s why they are preferable over \b in this case:
+Explanation of ^ and $
+
+    ^ matches the beginning of the string.
+    $ matches the end of the string.
+
+Together, ^ and $ force the entire string to adhere to the email format without allowing any extra characters before or after. This approach helps enforce a strict single match, which is essential in validating formats like email addresses.
+Explanation of \b
+
+    \b matches a word boundary, which could be the start or end of a word within a string.
+    \b is helpful if we want to match a word or pattern within a larger string but isn’t suitable for cases where we need the entire string to conform to a pattern.
+
+Example Difference
+
+Using \b alone wouldn’t prevent the email from being part of a larger string:
+
+python
+
+pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.(com|net|org|edu|gov)\b'
+
+# This will match even if there are characters before or after the email:
+string = "Contact us at example@test.com for more info"
+if re.search(pattern, string):
+    print("Matched")
+
+This would print Matched, but it’s not strictly validating the whole string as an email.
+Summary
+
+To ensure the email pattern is the entire string, use ^ and $ for string boundaries rather than \b.
+
+-----------------------------------------------------------
+but with only one [A-Za-z]{2,7} it shouldn't work if i put an email like test@outlook.com.br but its working with .com.br why?
+ChatGPT said:
+ChatGPT
+
+Good question! The reason your pattern is matching an email like test@outlook.com.br is because of the + after [A-Za-z0-9.]+, which allows multiple dots in the domain part of the email. Here’s how it works:
+
+    [A-Za-z0-9.]+: This part allows any combination of letters, numbers, and dots after the @. The + means that this section can repeat, which allows for multiple segments separated by dots (e.g., outlook.com.br).
+
+    [A-Za-z]{2,7}$: This checks that the very end of the email has 2 to 7 alphabetic characters. Because it’s at the end of the pattern, this part only applies to the final segment, like br in outlook.com.br.
+
+So, test@outlook.com.br is valid because the pattern allows multiple segments before the final TLD part, enabling it to match .com.br.
+
+-----------------------------------------------------------
+Breakdown of the Regex Components
+
+    (?: ... ):
+        This denotes a non-capturing group. It groups parts of the regex together without creating a backreference. In the example, (?:\+?\d{1,3}[-.\s]?)? and (?:\(\d{3}\)|\d{2,3}) are both non-capturing groups.
+        This is useful when you want to apply quantifiers (like ?, *, or +) or define a grouping but don't need to extract the matched content separately.
+
+    ?:
+        This indicates that the preceding element is optional. It means that the preceding character or group can occur zero or one time. For example, in (?:\+?\d{1,3}[-.\s]?)?, the ? makes the + (if present) and the entire group before it optional. This means a number can start with a +, or it can simply be a digit sequence without it.
+
+    \\ (or \ in some contexts):
+        In Python strings, the backslash \ is used as an escape character. In regex, some characters have special meanings (like . or *), and to use them literally, you would typically escape them with a backslash.
+        For example, to match a period (.) literally in a regex, you would write it as \..
+        The \\ in your regex string is needed because when using strings in Python, a single backslash is treated as an escape character. So to include a literal backslash in the regex, you need to use two backslashes: \\.
+    \d
+
+    Definition: \d is a shorthand character class that matches any digit character. Specifically, it matches any of the characters 0, 1, 2, 3, 4, 5, 6, 7, 8, or 9.
+    Usage: You can use \d to match single-digit numbers. For example, \d{3} matches exactly three consecutive digits, such as 123 or 456.
+
+    \s
+
+    Definition: \s is a shorthand character class that matches any whitespace character. This includes:
+        Spaces ( )
+        Tabs (\t)
+        Newlines (\n)
+        Carriage returns (\r)
+        Vertical tabs (\v)
+        Form feeds (\f)
+    Usage: You can use \s to match any whitespace in your string. For example, \s+ matches one or more consecutive whitespace characters, making it useful for parsing strings with variable spaces or line breaks.
+
+    |
+
+    The pipe symbol | in regular expressions serves as a logical OR operator.
